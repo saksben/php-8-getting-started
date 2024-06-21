@@ -1,0 +1,22 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run PHP Server",
+            "type": "shell",
+            "command": "php",
+            "args": [
+                "-S",
+                "localhost:8000"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "Launch PHP built-in server"
+        }
+    ]
+}
