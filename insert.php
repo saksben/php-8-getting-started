@@ -1,14 +1,12 @@
 <?php 
+
     require 'config.inc.php';
 
     // Initial variable declarations
     $name = '';
-    $password = '';
     $gender = '';
     $color = '';
-    $languages = [];
-    $comments = '';
-    $tc = '';
+    $password = '';
 
     // When a POST request is made with the input button with the 'submit' name:
     if (isset($_POST['submit'])) {
@@ -37,50 +35,24 @@
         } else {
             $color = $_POST['color'];
         };
-        if (!isset($_POST['languages']) || !is_array($_POST['languages']) 
-            || count($_POST['languages']) === 0) {
-            $ok = false;
-        } else {
-            $languages = $_POST['languages'];
-        };
-        if (!isset($_POST['comments']) || $_POST['comments'] === '') {
-            $ok = false;
-        } else {
-            $comments = $_POST['comments'];
-        };
-        if (!isset($_POST['tc']) || $_POST['tc'] === '') {
-            $ok = false;
-        } else {
-            $tc = $_POST['tc'];
-        };
 
         // Submit to db when submitted and $ok === true
         if ($ok) {
-            // printf('User name: %s
-            //     <br>Password: %s
-            //     <br>Gender: %s
-            //     <br>Color: %s
-            //     <br>Language(s): %s
-            //     <br>Comments: %s
-            //     <br>T&amp;C: %s',
-            //     htmlspecialchars($name, ENT_QUOTES),
-            //     htmlspecialchars($password, ENT_QUOTES),
-            //     htmlspecialchars($gender, ENT_QUOTES),
-            //     htmlspecialchars($color, ENT_QUOTES),
-            //     htmlspecialchars(implode(' ', $languages), ENT_QUOTES),
-            //     htmlspecialchars($comments, ENT_QUOTES),
-            //     htmlspecialchars($tc, ENT_QUOTES));
+            // Hash the password for security
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+
             // Connect to db
             $db = new mysqli(
                 MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE
             );
             // Data commands for db
             $sql = sprintf(
-                "INSERT INTO users (name, gender, color) VALUES (
-                '%s', '%s', '%s')",
+                "INSERT INTO users (name, gender, color, hash) VALUES (
+                '%s', '%s', '%s', '%s')",
                 $db->real_escape_string($name),
                 $db->real_escape_string($gender),
-                $db->real_escape_string($color)
+                $db->real_escape_string($color),
+                $db->real_escape_string($hash)
             );
             // Submit data commands to db
             $db->query($sql);
@@ -100,7 +72,8 @@
     <input type="text" name="name" value="<?php
         echo htmlspecialchars($name, ENT_QUOTES); // So the value remains even if submitted while validation fails
     ?>"><br>
-    Password: <input type="password" name="password"><br>
+    Password: 
+    <input type="text" name="password" value="<?php $password ?>"><br>
     Gender: 
     <input type="radio" name="gender" value="f"<?php 
         if ($gender === 'f') {
@@ -135,33 +108,11 @@
                 echo ' selected';
             }
         ?>>blue</option>
-    </select><br>
-    Languages spoken:
-    <select name="languages[]" multiple size="3">
-        <option value="en"<?php 
-            if (in_array('en', $languages)) {
-                echo ' selected';
-            }
-        ?>>English</option>
-        <option value="fr"<?php 
-            if (in_array('fr', $languages)) {
-                echo ' selected';
-            }
-        ?>>French</option>
-        <option value="it"<?php 
-            if (in_array('it', $languages)) {
-                echo ' selected';
-            }
-        ?>>Italian</option>
-    </select><br>
-    Comments: <textarea name="comments"><?php
-        echo htmlspecialchars($comments, ENT_QUOTES);
-    ?></textarea><br>
-    <input type="checkbox" name="tc" value="ok"<?php 
-        if ($tc === 'ok') {
-            echo ' checked';
-        }
-    ?>>
-    I accept the T&amp;C<br>
+    </select>
     <input type="submit" name="submit" value="Register">
 </form>
+
+<!-- Read (add) HTML footer from file footer.tmpl.html-->
+<!-- <?php
+    readfile('footer.tmpl.html');
+?> -->

@@ -1,14 +1,18 @@
 <?php 
+
     require 'config.inc.php';
+
+    // Get id from url params, to edit that user's id
+    if (isset($_GET['id']) && ctype_digit($_GET['id'])) {
+        $id = $_GET['id'];
+    } else {
+        header('Location: select.php');
+    }
 
     // Initial variable declarations
     $name = '';
-    $password = '';
     $gender = '';
     $color = '';
-    $languages = [];
-    $comments = '';
-    $tc = '';
 
     // When a POST request is made with the input button with the 'submit' name:
     if (isset($_POST['submit'])) {
@@ -22,11 +26,6 @@
         } else {
             $name = $_POST['name'];
         };
-        if (!isset($_POST['password']) || $_POST['password'] === '') {
-            $ok = false;
-        } else {
-            $password = $_POST['password'];
-        };
         if (!isset($_POST['gender']) || $_POST['gender'] === '') {
             $ok = false;
         } else {
@@ -37,24 +36,8 @@
         } else {
             $color = $_POST['color'];
         };
-        if (!isset($_POST['languages']) || !is_array($_POST['languages']) 
-            || count($_POST['languages']) === 0) {
-            $ok = false;
-        } else {
-            $languages = $_POST['languages'];
-        };
-        if (!isset($_POST['comments']) || $_POST['comments'] === '') {
-            $ok = false;
-        } else {
-            $comments = $_POST['comments'];
-        };
-        if (!isset($_POST['tc']) || $_POST['tc'] === '') {
-            $ok = false;
-        } else {
-            $tc = $_POST['tc'];
-        };
 
-        // Submit to db when submitted and $ok === true
+        // Submit to db when submitted and $ok === true, else display that user and their info
         if ($ok) {
             // printf('User name: %s
             //     <br>Password: %s
@@ -76,23 +59,40 @@
             );
             // Data commands for db
             $sql = sprintf(
-                "INSERT INTO users (name, gender, color) VALUES (
-                '%s', '%s', '%s')",
+                "UPDATE users SET name='%s', gender='%s', color='%s' 
+                WHERE id=%s",
                 $db->real_escape_string($name),
                 $db->real_escape_string($gender),
-                $db->real_escape_string($color)
+                $db->real_escape_string($color),
+                $id
             );
             // Submit data commands to db
             $db->query($sql);
             // Show that user has been added and data sent
-            echo '<p>User added.</p>';
+            echo '<p>User Updated.</p>';
             // Close db
             $db->close();
         };
         
+    } else {
+        $db = new mysqli(
+            'localhost',
+            'root',
+            'NightwingSpider1!',
+            'php'
+        );
+        $sql = "SELECT * FROM users WHERE id=$id"; // To prevent sql injection
+        $result = $db->query($sql);
+        foreach ($result as $row) {
+            $name = $row['name'];
+            $gender = $row['gender'];
+            $color = $row['color'];
+        }
+        $db->close();
     }
 ?>
 
+<!-- Form to update user -->
 <form 
     action="" 
     method="post">
@@ -100,7 +100,6 @@
     <input type="text" name="name" value="<?php
         echo htmlspecialchars($name, ENT_QUOTES); // So the value remains even if submitted while validation fails
     ?>"><br>
-    Password: <input type="password" name="password"><br>
     Gender: 
     <input type="radio" name="gender" value="f"<?php 
         if ($gender === 'f') {
@@ -135,33 +134,6 @@
                 echo ' selected';
             }
         ?>>blue</option>
-    </select><br>
-    Languages spoken:
-    <select name="languages[]" multiple size="3">
-        <option value="en"<?php 
-            if (in_array('en', $languages)) {
-                echo ' selected';
-            }
-        ?>>English</option>
-        <option value="fr"<?php 
-            if (in_array('fr', $languages)) {
-                echo ' selected';
-            }
-        ?>>French</option>
-        <option value="it"<?php 
-            if (in_array('it', $languages)) {
-                echo ' selected';
-            }
-        ?>>Italian</option>
-    </select><br>
-    Comments: <textarea name="comments"><?php
-        echo htmlspecialchars($comments, ENT_QUOTES);
-    ?></textarea><br>
-    <input type="checkbox" name="tc" value="ok"<?php 
-        if ($tc === 'ok') {
-            echo ' checked';
-        }
-    ?>>
-    I accept the T&amp;C<br>
-    <input type="submit" name="submit" value="Register">
+    </select>
+    <input type="submit" name="submit" value="Update">
 </form>
